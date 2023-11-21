@@ -1,0 +1,54 @@
+﻿@model ActivityStatusPing.Models.IndexViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <form asp-action="Login" enctype="ma" method="post">
+        <label asp-for="Username"></label>
+        <input asp-for="Username" />
+        <button type="submit">Login</button>
+    </form>
+    <form asp-action="Logout" enctype="text/plain" method="post">
+        <input asp-for="Id" hidden />
+        <label>Current User</label>
+        <input asp-for="User.Username" readonly />
+        <button type="submit">Logout</button>
+    </form>
+
+    <table>
+        <tr>
+            <th>Username</th>
+            <th>Status</th>
+        </tr>
+        @foreach (var user in Model.Users)
+        {
+            <tr>
+                <td>@user.Username</td>
+                <td id ="StatusUser_@user.Id" class="@(user.IsActive ? "text-success" : "text-danger")">@(user.IsActive ? "Online" : "Offline")</td>
+            </tr>
+        }
+    </table>
+</div>
+<script>
+    //run code every x milliseconds
+    setInterval(function () {
+        //if there is a current user, update their status
+        var userId = $("#Id").val();
+        $.post("/Home/CheckIn", { id: userId }, function () { 
+            console.log("user check in complete");
+        });
+        //check the status of all users.
+        $.get("/Home/GetUserStatuses", function (data, status) {
+            for (var i = 0; i < data.length; ++i) {
+                let activeUser = data[i].isActive;
+                if (activeUser) { 
+                    $("#StatusUser_" + data[i].id).html("<span class='text-success'>Online</span>");
+                }
+                else {
+                    $("#StatusUser_" + data[i].id).html("<span class='text-danger'>Offline</span>");
+                }
+            }
+        });
+    }, 30000);
+</script>
